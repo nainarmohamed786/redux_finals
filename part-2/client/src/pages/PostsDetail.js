@@ -1,27 +1,41 @@
-import React from 'react'
-import { useSelector } from 'react-redux'
-import { selectedAllPosts } from '../features/PostsSlice'
-import Timeago from './Timeago';
-import UserList from './UserList';
+import React, { useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { fetchPosts, getStatus, selectedAllPosts } from '../features/PostsSlice'
+import PostExpert from './PostExpert';
 
 const PostsDetail = () => {
     const posts=useSelector(selectedAllPosts);
+    const status=useSelector(getStatus);
 
-    const orderedPosts=posts.slice().sort((a,b)=>b.date.localeCompare(a.date))
+    const dispatch=useDispatch();
 
-   const renderedPost=orderedPosts.map((post)=>(
-    <div key={post.id}>
-          <h2>{post.title}</h2>
-          <p>{post.content}</p>
-          <Timeago timestamp={post.date} />
-          <UserList userId={post.userId} />
-          <br />
-    </div>
-   ))
+    useEffect(()=>{
+     if(status==="idle"){
+      dispatch(fetchPosts());
+     }
+    },[dispatch])
+
+   
+
+
+    let content;
+
+
+    if(status==="loading"){
+      content=<p>Loading.....</p>
+    }
+    else if(status==="success"){
+      const orderedPosts=posts.slice().sort((a,b)=>b.date.localeCompare(a.date))
+      content=orderedPosts.map((post,i)=>(
+        <PostExpert key={post.id} post={post} />
+     ))
+    }
+
+
 
   return (
     <div>
-       {renderedPost}
+       {content}
     </div>
   )
 }

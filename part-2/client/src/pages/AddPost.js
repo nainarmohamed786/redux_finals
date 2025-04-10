@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import { postAdded } from '../features/PostsSlice';
+import { addPosts, getError } from '../features/PostsSlice';
 import { selectedAllUser } from '../features/UsersSlice';
 
 const AddPost = () => {
@@ -8,18 +8,31 @@ const AddPost = () => {
     const [content,setContent]=useState("");
     const [userId,setUserId]=useState("");
     const users=useSelector(selectedAllUser);
+    const [addRequest,setAddRequest]=useState("idle");
+    const error=useSelector(getError);
+
+    const cansave=[title,content,userId].every(Boolean) && addRequest==="idle";
 
     const dispatch=useDispatch();
 
     const handleSubmit=(e)=>{
         e.preventDefault();
-
-        if(title,content){
-             dispatch(postAdded(title,content,userId));
-             setTitle("");
-             setContent("");
-             setUserId("");
-        }
+          if(cansave){
+            try{
+              setAddRequest("pending");
+              if(title && content && userId){
+               dispatch(addPosts({title,body:content,userId})).unwrap()
+              }
+             }
+             catch(err){
+               console.error('Failed to save the post', err)  
+             }
+             finally{
+             setAddRequest("idle")
+             }
+          }
+      
+      
     }
 
 
@@ -27,7 +40,6 @@ const AddPost = () => {
         <option key={user.id} value={user.id}>{user.name}</option>
     ));
 
-    const disableds=Boolean(title) && Boolean(content) && Boolean(userId);
 
 
   return (
@@ -39,7 +51,7 @@ const AddPost = () => {
             <option value={""}>Select User</option>
             {options}
         </select>
-        <button type="submit" disabled={!disableds}>Submit</button>
+        <button type="submit" disabled={!cansave}>Submit</button>
       </form>
     </div>
   )
